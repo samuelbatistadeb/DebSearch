@@ -25,3 +25,21 @@ for registro in registros:
     print(f"Extensão: {registro[3]}")
 
 print(f"\nTotal de registros: {len(registros)}")
+print("\n===== CONTAGEM POR PASTA =====")
+
+with conectar() as conn:
+    pastas = conn.execute("""
+        SELECT
+            substr(
+                caminho,
+                1,
+                length(caminho) - length(nome)
+            ) AS pasta,
+            COUNT(*) AS quantidade
+        FROM arquivos
+        GROUP BY pasta
+        ORDER BY quantidade DESC
+    """).fetchall()
+
+for pasta, quantidade in pastas:
+    print(f"{quantidade} arquivo(s) - {pasta}")

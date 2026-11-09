@@ -36,7 +36,7 @@ def inicializar_banco():
             CREATE TABLE IF NOT EXISTS arquivos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT NOT NULL,
-                caminho TEXT NOT NULL UNIQUE,
+                caminho TEXT NOT NULL COLLATE NOCASE UNIQUE,
                 extensao TEXT,
                 tamanho_bytes INTEGER NOT NULL DEFAULT 0,
                 modificado_em REAL,
