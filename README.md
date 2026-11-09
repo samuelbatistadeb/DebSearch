@@ -43,3 +43,35 @@ vários computadores abrirem diretamente.
 
 O caminho da pasta original de notas fiscais será configurado na próxima etapa.
 Este código ainda não acessa essa pasta.
+
+# Catálogo de Notas Fiscais — Etapa 2
+
+## Objetivo
+Percorrer a pasta compartilhada e cadastrar os metadados dos arquivos no SQLite.
+
+## Preparação
+1. Faça uma cópia de segurança de `database/catalogo.db`.
+2. Copie `indexador.py` e `configuracao.py` para a mesma pasta onde estão
+   `banco.py` e a pasta `database` da Etapa 1. Não substitua o banco existente.
+3. Confira o caminho em `configuracao.py`.
+4. Execute em um computador com permissão de leitura na pasta de rede.
+
+## Execução
+    python indexador.py
+
+## Segurança
+- O script apenas lista pastas e consulta metadados.
+- Não abre o conteúdo dos PDFs.
+- Não move, renomeia nem exclui os documentos.
+- Não remove registros do banco se algum arquivo não for encontrado.
+- Registros de arquivos excluídos da origem permanecem no banco nesta etapa;
+  a limpeza será feita depois com validação para evitar exclusões por falha de rede.
+
+## Filtros
+Por padrão, cataloga todos os arquivos, exceto temporários comuns.
+Para limitar a PDF e XML, altere `EXTENSOES_PERMITIDAS` para `{".pdf", ".xml"}`.
+
+## Implantação
+Durante o desenvolvimento, o banco fica na pasta do projeto. Na implantação,
+o SQLite ficará no disco local do servidor e será consultado pela aplicação web.
+Não coloque o banco em SMB para que vários clientes o abram diretamente.
