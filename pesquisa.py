@@ -2,13 +2,31 @@
 from banco import conectar
 
 
+def escapar_like(termo):
+    """Escapa caracteres especiais utilizados pelo LIKE."""
+    return (
+        termo
+        .replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+    )
+
+
+def escapar_fts(termo):
+    """
+    Transforma o termo em uma frase literal para o FTS5.
+    Evita que aspas e operadores sejam interpretados como comandos.
+    """
+    termo = termo.replace('"', '""')
+    return f'"{termo}"'
+
+
 def pesquisar_arquivos(termo, limite=30, pagina=1):
     """
-    Pesquisa arquivos pelo nome.
+    Pesquisa arquivos pelo nome utilizando FTS5 com trigramas.
 
-    termo: texto ou número procurado.
-    limite: quantidade máxima de resultados.
-    pagina: página dos resultados.
+    Para termos com 3 ou mais caracteres, utiliza o índice FTS5.
+    Para termos menores, utiliza LIKE como alternativa.
     """
 
     termo = str(termo).strip()
@@ -32,41 +50,77 @@ def pesquisar_arquivos(termo, limite=30, pagina=1):
 
     deslocamento = (pagina - 1) * limite
 
-    # Escapa caracteres especiais do LIKE
-    termo = (
-        termo
-        .replace("\\", "\\\\")
-        .replace("%", "\\%")
-        .replace("_", "\\_")
-    )
-
-    parametro = f"%{termo}%"
-
     with conectar() as conn:
 
-        total = conn.execute("""
-            SELECT COUNT(*)
-            FROM arquivos
-            WHERE nome LIKE ? ESCAPE '\\'
-        """, (parametro,)).fetchone()[0]
+        # Verifica se o índice FTS5 está disponível
+        fts_disponivel = conn.execute("""
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table'
+              AND name = 'arquivos_fts'
+        """).fetchone() is not None
 
-        registros = conn.execute("""
-            SELECT
-                id,
-                nome,
-                caminho,
-                extensao,
-                tamanho_bytes,
-                modificado_em
-            FROM arquivos
-            WHERE nome LIKE ? ESCAPE '\\'
-            ORDER BY nome COLLATE NOCASE
-            LIMIT ? OFFSET ?
-        """, (
-            parametro,
-            limite,
-            deslocamento
-        )).fetchall()
+        usar_fts = len(termo) >= 3 and fts_disponivel
+
+        if usar_fts:
+
+            parametro = escapar_fts(termo)
+
+            total = conn.execute("""
+                SELECT COUNT(*)
+                FROM arquivos
+                INNER JOIN arquivos_fts
+                    ON arquivos_fts.rowid = arquivos.id
+                WHERE arquivos_fts MATCH ?
+            """, (parametro,)).fetchone()[0]
+
+            registros = conn.execute("""
+                SELECT
+                    arquivos.id,
+                    arquivos.nome,
+                    arquivos.caminho,
+                    arquivos.extensao,
+                    arquivos.tamanho_bytes,
+                    arquivos.modificado_em
+                FROM arquivos
+                INNER JOIN arquivos_fts
+                    ON arquivos_fts.rowid = arquivos.id
+                WHERE arquivos_fts MATCH ?
+                ORDER BY arquivos.nome COLLATE NOCASE
+                LIMIT ? OFFSET ?
+            """, (
+                parametro,
+                limite,
+                deslocamento
+            )).fetchall()
+
+        else:
+
+            parametro = f"%{escapar_like(termo)}%"
+
+            total = conn.execute("""
+                SELECT COUNT(*)
+                FROM arquivos
+                WHERE nome LIKE ? ESCAPE '\\'
+            """, (parametro,)).fetchone()[0]
+
+            registros = conn.execute("""
+                SELECT
+                    id,
+                    nome,
+                    caminho,
+                    extensao,
+                    tamanho_bytes,
+                    modificado_em
+                FROM arquivos
+                WHERE nome LIKE ? ESCAPE '\\'
+                ORDER BY nome COLLATE NOCASE
+                LIMIT ? OFFSET ?
+            """, (
+                parametro,
+                limite,
+                deslocamento
+            )).fetchall()
 
     resultados = []
 

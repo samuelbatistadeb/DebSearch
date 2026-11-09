@@ -1,0 +1,1015 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DebSearch | Catálogo</title>
+
+    <style>
+        :root {
+            --navy: #182a4e;
+            --blue: #2563C9;
+            --light-blue: #3B82F6;
+
+            --white: #FFFFFF;
+            --background: #F8FAFC;
+            --border: #E2E8F0;
+            --secondary-text: #64748B;
+
+            --success: #059669;
+            --error: #DC2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--navy);
+            color: var(--navy);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        /* Estrutura geral */
+
+        .page {
+            width: 100%;
+            max-width: 1500px;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 35px 55px 45px;
+        }
+
+        /* Cabeçalho */
+
+        .topbar {
+        /* Transforma em barra lateral fixa */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px; /* Largura do seu menu lateral */
+        height: 15vh; /* Ocupa toda a altura da tela */
+        padding: 30px 24px; /* Espaçamento interno */
+        box-sizing: border-box;
+        
+        /* Alinha os itens verticalmente */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Alinha os textos à esquerda */
+        justify-content: flex-start; /* Começa do topo e vai descendo */
+        gap: 20px; /* Espaço entre a marca e o label do sistema */
+        border-radius: 0%  0% 20px 0%; /* Arredonda apenas o canto inferior direito */  
+        
+        background-color: var(--secondary-text); /* Cor de fundo (ajuste se necessário) */
+    }
+
+    .brand {
+        color: var(--background);
+        font-size: 25px;
+        font-weight: 750;
+        letter-spacing: -1px;
+    }
+
+    .brand span {
+        font-weight: 400;
+        opacity: 0.9;
+    }
+
+    .system-label {
+        color: var(--white);
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    /* Título e Conteúdo da Página */
+    /* IMPORTANTE: Adicione uma margem no conteúdo principal para não sumir atrás do menu */
+    .main-content {
+        margin-left: 200px; /* Mesma largura do menu */
+        padding: 10px;
+    }
+
+    .page-heading {
+        margin-bottom: 57px;
+    }
+
+    .page-heading h1 {
+        margin: 0;
+        color: var(--white);
+        font-size: 31px;
+        font-weight: 650;
+        letter-spacing: -0.8px;
+    }
+
+    .page-heading p {
+        margin: 10px 0 0;
+        color: var(--secondary-text);
+        font-size: 14px;
+    }
+
+    /* Pasta */
+    .folder {
+        position: relative;
+        margin-top: 0;
+    }
+
+    .folder-tab {
+        position: absolute;
+        top: -39px;
+        left: 0;
+        z-index: 1;
+
+        width: 120px;
+        height: 48px;
+
+        display: flex;
+        align-items: center;
+        padding: 0px 25px;
+        margin-left: 25px;
+
+        background: var(--background);
+        color: var(--navy);
+
+        border-radius: 13px 13px 0 0;
+
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+
+    .folder-tab span {
+        position: relative;
+        z-index: 2;
+    }
+
+    .folder-body {
+        position: relative;
+        z-index: 2;
+
+        min-height: 750px;
+        padding: 32px;
+        margin-top: 45px;
+        background: var(--background);
+
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 17px 17px 17px 17px;
+
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    /* Barra de pesquisa */
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 27px;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        height: 49px;
+        padding: 0 18px 0 46px;
+
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+
+        color: var(--navy);
+        font-size: 14px;
+        outline: none;
+
+        transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37,99,201,0.09);
+    }
+
+    .search-box input::placeholder {
+        color: var(--secondary-text);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--secondary-text);
+        font-size: 19px;
+        pointer-events: none;
+    }
+
+    .search-button {
+        height: 49px;
+        padding: 0 25px;
+
+        background: var(--blue);
+        color: white;
+
+        border: none;
+        border-radius: 9px;
+
+        font-size: 13px;
+        font-weight: 650;
+
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .search-button:hover {
+        background: #1D4FA8;
+    }
+
+    .search-button:disabled {
+        opacity: 0.65;
+        cursor: wait;
+    }
+
+    /* Informações dos resultados */
+
+    .results-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 13px;
+
+        color: var(--secondary-text);
+        font-size: 13px;
+    }
+
+    .results-info strong {
+        color: var(--navy);
+        font-weight: 700;
+    }
+
+    /* Tabela */
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 11px;
+    }
+
+    table {
+        width: 100%;
+        min-width: 700px;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #F1F5F9;
+    }
+
+    th {
+        height: 49px;
+        padding: 0 19px;
+
+        text-align: left;
+        white-space: nowrap;
+
+        color: var(--navy);
+        font-size: 12px;
+        font-weight: 700;
+
+        border-bottom: 1px solid var(--border);
+    }
+
+    td {
+        height: 65px;
+        padding: 10px 19px;
+
+        color: var(--secondary-text);
+        font-size: 13px;
+
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    tbody tr:hover {
+        background: #F8FAFC;
+    }
+
+    .document-name {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 240px;
+    }
+
+    .file-icon {
+        flex-shrink: 0;
+
+        width: 35px;
+        height: 35px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #EFF6FF;
+        color: var(--blue);
+
+        border-radius: 8px;
+        font-size: 17px;
+    }
+
+    .file-name {
+        max-width: 440px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        color: var(--navy);
+        font-weight: 550;
+    }
+
+    .extension {
+        display: inline-block;
+        padding: 5px 9px;
+
+        background: #F1F5F9;
+        color: #475569;
+
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Ações */
+
+    .actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-button {
+        height: 33px;
+        padding: 0 11px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        border: 1px solid var(--border);
+        border-radius: 7px;
+
+        background: white;
+        color: var(--blue);
+
+        font-size: 12px;
+        font-weight: 600;
+
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .action-button:hover {
+        background: #EFF6FF;
+        border-color: #BFDBFE;
+    }
+
+    /* Estados da pesquisa */
+
+    .state {
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 35px;
+    }
+
+    .state-icon {
+        width: 54px;
+        height: 54px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 15px;
+
+        border-radius: 14px;
+        background: #EAF1FC;
+        color: var(--blue);
+
+        font-size: 24px;
+    }
+
+    .state h3 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 15px;
+        font-weight: 650;
+    }
+
+    .state p {
+        margin: 8px 0 0;
+        color: var(--secondary-text);
+        font-size: 13px;
+    }
+
+    .spinner {
+        width: 28px;
+        height: 28px;
+
+        border: 3px solid var(--border);
+        border-top-color: var(--blue);
+
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Paginação */
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .pagination-info {
+        color: var(--secondary-text);
+        font-size: 12px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .page-button {
+        height: 36px;
+        min-width: 36px;
+        padding: 0 11px;
+
+        border: 1px solid var(--border);
+        border-radius: 8px;
+
+        background: white;
+        color: var(--navy);
+
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .page-button:hover:not(:disabled) {
+        border-color: var(--blue);
+        color: var(--blue);
+    }
+
+    .page-button:disabled {
+        color: #CBD5E1;
+        background: #F1F5F9;
+        cursor: not-allowed;
+    }
+
+    .current-page {
+        color: var(--secondary-text);
+        font-size: 12px;
+        padding: 0 5px;
+    }
+
+    /* Rodapé */
+
+    .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        margin-top: 25px;
+
+        color: #AAB8CC;
+        font-size: 11px;
+    }
+
+    .footer strong {
+        color: white;
+        font-weight: 650;
+    }
+
+    /* Responsividade */
+
+    @media (max-width: 760px) {
+        .page {
+            padding: 25px 16px 35px;
+        }
+
+        .topbar {
+            margin-bottom: 42px;
+        }
+
+        .system-label {
+            display: none;
+        }
+
+        .page-heading {
+            margin-bottom: 55px;
+        }
+
+        .page-heading h1 {
+            font-size: 25px;
+        }
+
+        .folder-body {
+            padding: 20px 14px;
+        }
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-button {
+            width: 100%;
+        }
+
+        .pagination {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+    </style>
+</head>
+
+<body>
+
+    <main class="page">
+        <section class="topbar">
+            <div class="brand">
+                DebSearch
+            </div>
+            <div class="system-label">
+                Sistema de Pesquisa de Documentos
+            </div>
+        </section>
+
+        <section class="folder">
+
+            <div class="folder-tab">
+                <span>Catálogo</span>
+            </div>
+
+
+            <div class="folder-body">
+
+                <div class="toolbar">
+
+                    <div class="search-box">
+
+                        <span class="search-icon">⌕</span>
+
+                        <input
+                            id="searchInput"
+                            type="text"
+                            placeholder="Digite o nome ou parte do nome do documento..."
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+                    <button
+                        id="searchButton"
+                        class="search-button"
+                        onclick="pesquisar(1)"
+                    >
+                        Pesquisar
+                    </button>
+
+                </div>
+
+
+                <div class="results-info">
+
+                    <span id="resultCount">
+                        Digite um termo para pesquisar.
+                    </span>
+
+                    <span>
+                        15 por página
+                    </span>
+
+                </div>
+
+
+                <div id="content">
+
+                    <div class="state">
+
+                        <div class="state-icon">⌕</div>
+
+                        <h3>Encontre seus documentos</h3>
+
+                        <p>
+                            Digite um nome ou número para iniciar a pesquisa.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="pagination" id="pagination" style="display: none;">
+
+                    <div class="pagination-info" id="paginationInfo"></div>
+
+                    <div class="pagination-controls">
+
+                        <button
+                            class="page-button"
+                            id="previousButton"
+                            onclick="pesquisar(paginaAtual - 1)"
+                        >
+                            ← Anterior
+                        </button>
+
+                        <span class="current-page" id="currentPage"></span>
+
+                        <button
+                            class="page-button"
+                            id="nextButton"
+                            onclick="pesquisar(paginaAtual + 1)"
+                        >
+                            Próxima →
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <footer class="footer">
+
+            <span>
+                <strong>DebSearch</strong> · Catálogo de documentos
+            </span>
+
+            <span>
+                Pesquisa integrada ao banco de dados
+            </span>
+
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        const LIMITE = 15;
+
+        let paginaAtual = 1;
+        let totalPaginas = 0;
+
+        const campoPesquisa = document.getElementById("searchInput");
+        const botaoPesquisa = document.getElementById("searchButton");
+        const conteudo = document.getElementById("content");
+
+
+        campoPesquisa.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                pesquisar(1);
+            }
+        });
+
+
+        function escaparHTML(valor) {
+            return String(valor ?? "").replace(/[&<>"']/g, function(caractere) {
+                const mapa = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#039;"
+                };
+
+                return mapa[caractere];
+            });
+        }
+
+
+        function formatarTamanho(bytes) {
+
+            if (!bytes || bytes <= 0) return "0 KB";
+
+            if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(1) + " KB";
+            }
+
+            if (bytes < 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+            }
+
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+        }
+
+
+        function formatarData(valor) {
+
+            if (!valor) return "—";
+
+            const data = typeof valor === "number"
+                ? new Date(valor * 1000)
+                : new Date(valor);
+
+            if (isNaN(data.getTime())) return "—";
+
+            return data.toLocaleString("pt-BR");
+        }
+
+
+        function mostrarEstado(titulo, mensagem, icone = "⌕") {
+
+            conteudo.innerHTML = `
+                <div class="state">
+                    <div class="state-icon">${icone}</div>
+                    <h3>${escaparHTML(titulo)}</h3>
+                    <p>${escaparHTML(mensagem)}</p>
+                </div>
+            `;
+        }
+
+
+        async function pesquisar(pagina = 1) {
+
+            const termo = campoPesquisa.value.trim();
+
+            if (!termo) {
+
+                mostrarEstado(
+                    "Digite um termo para pesquisar",
+                    "Informe o nome ou parte do nome do documento."
+                );
+
+                document.getElementById("resultCount").textContent =
+                    "Aguardando pesquisa.";
+
+                document.getElementById("pagination").style.display = "none";
+
+                return;
+            }
+
+            paginaAtual = pagina;
+
+            botaoPesquisa.disabled = true;
+            botaoPesquisa.textContent = "Pesquisando...";
+
+            document.getElementById("pagination").style.display = "none";
+
+            document.getElementById("resultCount").textContent =
+                "Consultando catálogo...";
+
+            conteudo.innerHTML = `
+                <div class="state">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 16px;">Pesquisando documentos...</p>
+                </div>
+            `;
+
+            try {
+
+                const parametros = new URLSearchParams({
+                    q: termo,
+                    pagina: paginaAtual,
+                    limite: LIMITE
+                });
+
+                const resposta = await fetch(
+                    `/pesquisar?${parametros.toString()}`
+                );
+
+                if (!resposta.ok) {
+                    throw new Error("Falha ao consultar o catálogo.");
+                }
+
+                const dados = await resposta.json();
+
+                totalPaginas = Math.ceil(dados.total / LIMITE);
+
+                document.getElementById("resultCount").innerHTML =
+                    `<strong>${dados.total.toLocaleString("pt-BR")}</strong> documento(s) encontrado(s)`;
+
+                if (!dados.resultados || dados.resultados.length === 0) {
+
+                    mostrarEstado(
+                        "Nenhum documento encontrado",
+                        "Tente pesquisar utilizando outro termo."
+                    );
+
+                    return;
+                }
+
+                renderizarResultados(dados.resultados);
+                atualizarPaginacao(dados.total);
+
+            } catch (erro) {
+
+                console.error(erro);
+
+                mostrarEstado(
+                    "Não foi possível realizar a pesquisa",
+                    "Verifique se o servidor está funcionando e tente novamente.",
+                    "!"
+                );
+
+                document.getElementById("resultCount").textContent =
+                    "Erro na pesquisa.";
+
+            } finally {
+
+                botaoPesquisa.disabled = false;
+                botaoPesquisa.textContent = "Pesquisar";
+
+            }
+        }
+
+
+        function renderizarResultados(resultados) {
+
+            let linhas = "";
+
+            resultados.forEach(function(documento) {
+
+                const nome = escaparHTML(documento.nome);
+
+                const extensao = escaparHTML(
+                    (documento.extensao || "arquivo").replace(".", "")
+                );
+
+                const data = escaparHTML(formatarData(documento.modificado_em));
+                const tamanho = escaparHTML(formatarTamanho(documento.tamanho_bytes));
+
+                const id = encodeURIComponent(documento.id);
+                const caminho = String(documento.caminho ?? "");
+
+                linhas += `
+                    <tr>
+
+                        <td>
+                            <div class="document-name">
+
+                                <div class="file-icon">▤</div>
+
+                                <div class="file-name" title="${nome}">
+                                    ${nome}
+                                </div>
+
+                            </div>
+                        </td>
+
+                        <td>${data}</td>
+
+                        <td>
+                            <span class="extension">${extensao}</span>
+                        </td>
+
+                        <td>${tamanho}</td>
+
+                        <td>
+                            <div class="actions">
+
+                                <a
+                                    class="action-button"
+                                    href="/arquivo/${id}"
+                                    title="Baixar documento"
+                                >
+                                    ↓ Baixar
+                                </a>
+
+                                <button
+                                    class="action-button"
+                                    onclick="copiarCaminho(this)"
+                                    data-path="${escaparHTML(caminho)}"
+                                    title="Copiar caminho"
+                                >
+                                    ⧉ Caminho
+                                </button>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                `;
+            });
+
+            conteudo.innerHTML = `
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Documento</th>
+                                <th>Modificado em</th>
+                                <th>Formato</th>
+                                <th>Tamanho</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${linhas}
+                        </tbody>
+
+                    </table>
+
+                </div>
+            `;
+        }
+
+
+        async function copiarCaminho(botao) {
+
+            const caminho = botao.getAttribute("data-path");
+
+            try {
+
+                await navigator.clipboard.writeText(caminho);
+
+                const textoOriginal = botao.innerHTML;
+
+                botao.innerHTML = "✓ Copiado";
+
+                setTimeout(function() {
+                    botao.innerHTML = textoOriginal;
+                }, 1500);
+
+            } catch (erro) {
+
+                alert("Não foi possível copiar o caminho.");
+
+            }
+        }
+
+
+        function atualizarPaginacao(total) {
+
+            const paginacao = document.getElementById("pagination");
+
+            if (totalPaginas <= 1) {
+                paginacao.style.display = "none";
+                return;
+            }
+
+            paginacao.style.display = "flex";
+
+            const inicio = ((paginaAtual - 1) * LIMITE) + 1;
+            const fim = Math.min(paginaAtual * LIMITE, total);
+
+            document.getElementById("paginationInfo").textContent =
+                `Exibindo ${inicio}–${fim} de ${total.toLocaleString("pt-BR")} documentos`;
+
+            document.getElementById("currentPage").textContent =
+                `Página ${paginaAtual} de ${totalPaginas}`;
+
+            document.getElementById("previousButton").disabled =
+                paginaAtual <= 1;
+
+            document.getElementById("nextButton").disabled =
+                paginaAtual >= totalPaginas;
+        }
+
+    </script>
+
+</body>
+</html>
