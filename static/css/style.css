@@ -1,0 +1,676 @@
+
+:root {
+    /* Identidade visual */
+    --navy: #0F1B2D;
+    --blue: #2563C9;
+    --light-blue: #3B82F6;
+
+    --white: #FFFFFF;
+    --background: #F8FAFC;
+    --border: #E2E8F0;
+    --secondary-text: #64748B;
+
+    --success: #059669;
+    --error: #DC2626;
+
+    /* Dimensões da interface */
+    --sidebar-width: 205px;
+    --page-gap: clamp(28px, 3vw, 58px);
+    --folder-padding: clamp(20px, 2.2vw, 34px);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 900px;
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--navy);
+    color: var(--navy);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+/* ========================================
+   ESTRUTURA GERAL
+======================================== */
+
+.page {
+    width: 100%;
+    max-width: 1900px;
+    min-height: 100vh;
+    margin: 0 auto;
+
+    padding:
+        35px
+        var(--page-gap)
+        35px
+        calc(var(--sidebar-width) + var(--page-gap));
+}
+
+/* ========================================
+   MENU LATERAL
+======================================== */
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+
+    width: var(--sidebar-width);
+    height: 100vh;
+
+    padding: 30px 23px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+
+    background: var(--navy);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+    color: var(--background);
+    font-size: 25px;
+    font-weight: 750;
+    letter-spacing: -1px;
+}
+
+.brand span {
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.system-label {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+}
+
+/* ========================================
+   TÍTULO E CONTEÚDO
+======================================== */
+
+.main-content {
+    width: 100%;
+    min-width: 0;
+}
+
+.page-heading {
+    margin-bottom: 57px;
+}
+
+.page-heading h1 {
+    margin: 0;
+    color: var(--white);
+    font-size: 31px;
+    font-weight: 650;
+    letter-spacing: -0.8px;
+}
+
+.page-heading p {
+    margin: 10px 0 0;
+    color: var(--secondary-text);
+    font-size: 14px;
+}
+
+/* ========================================
+   PASTA
+======================================== */
+
+.folder {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0;
+}
+
+.folder-tab {
+    position: absolute;
+    top: -39px;
+    left: 0;
+    z-index: 1;
+
+    width: 120px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 25px;
+    margin-left: 25px;
+
+    background: var(--background);
+    color: var(--navy);
+
+    border-radius: 13px 13px 0 0;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.folder-tab span {
+    position: relative;
+    z-index: 2;
+}
+
+.folder-body {
+    position: relative;
+    z-index: 2;
+
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(620px, calc(100vh - 110px), 950px);
+
+    padding: var(--folder-padding);
+    margin-top: 45px;
+
+    background: var(--background);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 17px;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   BARRA DE PESQUISA
+======================================== */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 27px;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-box input {
+    width: 100%;
+    height: 49px;
+
+    padding: 0 18px 0 46px;
+
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    color: var(--navy);
+    font-size: 14px;
+    outline: none;
+
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.search-box input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 201, 0.09);
+}
+
+.search-box input::placeholder {
+    color: var(--secondary-text);
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    color: var(--secondary-text);
+    font-size: 19px;
+
+    pointer-events: none;
+}
+
+.search-button {
+    height: 49px;
+    padding: 0 25px;
+
+    background: var(--blue);
+    color: white;
+
+    border: none;
+    border-radius: 9px;
+
+    font-size: 13px;
+    font-weight: 650;
+
+    cursor: pointer;
+    white-space: nowrap;
+
+    transition: background 0.2s;
+}
+
+.search-button:hover {
+    background: #1D4FA8;
+}
+
+.search-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+/* ========================================
+   INFORMAÇÕES DOS RESULTADOS
+======================================== */
+
+.results-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    margin-bottom: 13px;
+
+    color: var(--secondary-text);
+    font-size: 13px;
+}
+
+.results-info strong {
+    color: var(--navy);
+    font-weight: 700;
+}
+
+/* ========================================
+   TABELA
+======================================== */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+}
+
+table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #F1F5F9;
+}
+
+th {
+    height: 49px;
+    padding: 0 19px;
+
+    text-align: left;
+    white-space: nowrap;
+
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 700;
+
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    height: 65px;
+    padding: 10px 19px;
+
+    color: var(--secondary-text);
+    font-size: 13px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background: #F8FAFC;
+}
+
+.document-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 240px;
+}
+
+.file-icon {
+    flex-shrink: 0;
+
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #EFF6FF;
+    color: var(--blue);
+
+    border-radius: 8px;
+    font-size: 17px;
+}
+
+.file-name {
+    max-width: 440px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: var(--navy);
+    font-weight: 550;
+}
+
+.extension {
+    display: inline-block;
+    padding: 5px 9px;
+
+    background: #F1F5F9;
+    color: #475569;
+
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ========================================
+   AÇÕES
+======================================== */
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-button {
+    height: 33px;
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    background: white;
+    color: var(--blue);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.action-button:hover {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+/* ========================================
+   ESTADOS DA PESQUISA
+======================================== */
+
+.state {
+    min-height: 300px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    padding: 35px;
+}
+
+.state-icon {
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 15px;
+
+    border-radius: 14px;
+    background: #EAF1FC;
+    color: var(--blue);
+
+    font-size: 24px;
+}
+
+.state h3 {
+    margin: 0;
+    color: var(--navy);
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.state p {
+    margin: 8px 0 0;
+    color: var(--secondary-text);
+    font-size: 13px;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+
+    border: 3px solid var(--border);
+    border-top-color: var(--blue);
+
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   PAGINAÇÃO
+======================================== */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+.pagination-info {
+    color: var(--secondary-text);
+    font-size: 12px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-button {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 11px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: white;
+    color: var(--navy);
+
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.page-button:hover:not(:disabled) {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.page-button:disabled {
+    color: #CBD5E1;
+    background: #F1F5F9;
+    cursor: not-allowed;
+}
+
+.current-page {
+    color: var(--secondary-text);
+    font-size: 12px;
+    padding: 0 5px;
+}
+
+/* ========================================
+   RODAPÉ
+======================================== */
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    margin-top: 25px;
+
+    color: #AAB8CC;
+    font-size: 11px;
+}
+
+.footer strong {
+    color: white;
+    font-weight: 650;
+}
+
+/* ========================================
+   NOTEBOOKS - TELAS MAIS COMPACTAS
+======================================== */
+
+@media (max-width: 1440px) {
+    :root {
+        --sidebar-width: 190px;
+        --page-gap: 30px;
+        --folder-padding: 25px;
+    }
+
+    .brand {
+        font-size: 23px;
+    }
+
+    .folder-body {
+        min-height: 620px;
+    }
+
+    th {
+        padding: 0 14px;
+    }
+
+    td {
+        padding: 10px 14px;
+    }
+}
+
+/* ========================================
+   NOTEBOOKS - RESOLUÇÕES MENORES
+======================================== */
+
+@media (max-width: 1200px) {
+    :root {
+        --sidebar-width: 175px;
+        --page-gap: 23px;
+        --folder-padding: 20px;
+    }
+
+    .topbar {
+        padding: 27px 18px;
+    }
+
+    .brand {
+        font-size: 21px;
+    }
+
+    .system-label {
+        font-size: 11px;
+    }
+
+    .page {
+        padding-top: 28px;
+    }
+
+    .folder-body {
+        min-height: 600px;
+    }
+
+    .file-name {
+        max-width: 300px;
+    }
+}
+
+/* ========================================
+   AJUSTES PARA POUCA ALTURA VERTICAL
+======================================== */
+
+@media (max-height: 800px) {
+    .page {
+        padding-top: 25px;
+        padding-bottom: 22px;
+    }
+
+    .folder-body {
+        min-height: 570px;
+    }
+
+    .footer {
+        margin-top: 17px;
+    }
+}
+
+@media (max-height: 700px) {
+    .page {
+        padding-top: 20px;
+    }
+
+    .folder-body {
+        min-height: 540px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .toolbar {
+        margin-bottom: 18px;
+    }
+
+    .state {
+        min-height: 250px;
+    }
+}
