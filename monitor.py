@@ -10,6 +10,7 @@ from watchdog.events import FileSystemEventHandler
 
 from configuracao import PASTA_ORIGEM
 from banco import conectar, inicializar_banco
+from preparar_fts import preparar_indice
 
 
 # Reconciliação a cada 24 horas
@@ -26,7 +27,7 @@ logging.basicConfig(
 
 
 fila_eventos = queue.Queue()
-
+bloqueio_catalogo = threading.RLock()
 
 def caminho_absoluto(caminho):
     return os.path.normcase(os.path.abspath(caminho))
@@ -106,6 +107,13 @@ def cadastrar_ou_atualizar(caminho):
                     tamanho_bytes = excluded.tamanho_bytes,
                     modificado_em = excluded.modificado_em,
                     modificado_ns = excluded.modificado_ns
+
+                WHERE
+                    arquivos.nome IS NOT excluded.nome
+                    OR arquivos.extensao IS NOT excluded.extensao
+                    OR arquivos.tamanho_bytes IS NOT excluded.tamanho_bytes
+                    OR arquivos.modificado_em IS NOT excluded.modificado_em
+                    OR arquivos.modificado_ns IS NOT excluded.modificado_ns
             """, (
                 nome,
                 caminho,
@@ -115,7 +123,7 @@ def cadastrar_ou_atualizar(caminho):
                 estat.st_mtime_ns
             ))
 
-        logging.info("Cadastrado/atualizado: %s", caminho)
+        logging.info("Cadastrado/verificado: %s", caminho)
 
     except OSError as erro:
         logging.error("Erro ao acessar %s: %s", caminho, erro)
@@ -156,7 +164,7 @@ def indexar_pasta(caminho):
             )
 
 
-def processar_eventos(eventos):
+def _processar_eventos(eventos):
     """
     Agrupa eventos repetidos para evitar operações desnecessárias.
     """
@@ -208,7 +216,7 @@ def processar_eventos(eventos):
             remover_pasta(origem)
             indexar_pasta(destino)
 
-    # Processa os arquivos, sem repetir ações para o mesmo caminho
+    # Processa arquivos, sem repetir ações para o mesmo caminho
     for acao, caminho in acoes_arquivos.values():
 
         if acao == "remover":
@@ -217,6 +225,9 @@ def processar_eventos(eventos):
         elif acao == "atualizar":
             cadastrar_ou_atualizar(caminho)
 
+def processar_eventos(eventos):
+    with bloqueio_catalogo:
+        _processar_eventos(eventos)
 
 def trabalhador_eventos():
     logging.info("Fila de eventos iniciada.")
@@ -229,7 +240,6 @@ def trabalhador_eventos():
 
         eventos = [primeiro]
 
-        # Aguarda brevemente para agrupar eventos semelhantes
         time.sleep(TEMPO_AGRUPAMENTO)
 
         while True:
@@ -287,12 +297,12 @@ class MonitorDeArquivos(FileSystemEventHandler):
         ))
 
 
-def reconciliar_catalogo():
+def _reconciliar_catalogo():
     """
     Compara a pasta física com o banco.
 
-    Só remove registros antigos se a varredura terminar
-    sem erros de leitura.
+    Só atualiza registros que realmente sofreram alterações.
+    Só remove registros antigos se a varredura terminar sem erros.
     """
 
     logging.info("Iniciando reconciliação do catálogo...")
@@ -331,7 +341,6 @@ def reconciliar_catalogo():
             except OSError as erro:
                 registrar_erro(erro)
 
-    # Cadastra e atualiza os arquivos encontrados
     dados = [
         (
             nome,
@@ -350,6 +359,7 @@ def reconciliar_catalogo():
         ) in arquivos_encontrados.items()
     ]
 
+    # Insere novos registros e atualiza somente os que mudaram
     with conectar() as conn:
         conn.executemany("""
             INSERT INTO arquivos (
@@ -369,6 +379,13 @@ def reconciliar_catalogo():
                 tamanho_bytes = excluded.tamanho_bytes,
                 modificado_em = excluded.modificado_em,
                 modificado_ns = excluded.modificado_ns
+
+            WHERE
+                arquivos.nome IS NOT excluded.nome
+                OR arquivos.extensao IS NOT excluded.extensao
+                OR arquivos.tamanho_bytes IS NOT excluded.tamanho_bytes
+                OR arquivos.modificado_em IS NOT excluded.modificado_em
+                OR arquivos.modificado_ns IS NOT excluded.modificado_ns
         """, dados)
 
     # Só exclui registros antigos se a leitura foi completa
@@ -376,6 +393,7 @@ def reconciliar_catalogo():
         logging.warning(
             "Reconciliação parcial. Nenhum registro foi excluído."
         )
+
     else:
         raiz = caminho_absoluto(PASTA_ORIGEM)
         prefixo = raiz + os.sep
@@ -409,10 +427,16 @@ def reconciliar_catalogo():
         len(arquivos_encontrados)
     )
 
+def reconciliar_catalogo():
+    with bloqueio_catalogo:
+        _reconciliar_catalogo()
 
 def iniciar_monitoramento():
 
     inicializar_banco()
+
+    # Prepara o FTS5 e garante os gatilhos de sincronização
+    preparar_indice()
 
     if not os.path.isdir(PASTA_ORIGEM):
         raise FileNotFoundError(
@@ -433,8 +457,8 @@ def iniciar_monitoramento():
         target=trabalhador_eventos,
         daemon=True
     )
-    trabalhador.start()
 
+    trabalhador.start()
     observador.start()
 
     logging.info("Monitoramento iniciado.")
@@ -446,7 +470,6 @@ def iniciar_monitoramento():
 
         while True:
             time.sleep(INTERVALO_RECONCILIACAO)
-
             reconciliar_catalogo()
 
     except KeyboardInterrupt:
