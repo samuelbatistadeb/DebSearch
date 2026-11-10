@@ -1,7 +1,7 @@
 
 """
 Banco de dados do DebDocs
-Gerenciamento do catálogo e dos usuários.
+Gerenciamento do catálogo, usuários e segurança de autenticação.
 """
 
 from pathlib import Path
@@ -15,9 +15,14 @@ CAMINHO_BANCO = PASTA_DATABASE / "catalogo.db"
 
 def conectar():
     """Abre uma conexão com o banco SQLite."""
+
     PASTA_DATABASE.mkdir(parents=True, exist_ok=True)
 
-    conexao = sqlite3.connect(CAMINHO_BANCO, timeout=30)
+    conexao = sqlite3.connect(
+        CAMINHO_BANCO,
+        timeout=30
+    )
+
     conexao.row_factory = sqlite3.Row
     conexao.execute("PRAGMA foreign_keys = ON")
 
@@ -31,7 +36,10 @@ def inicializar_banco():
 
         conexao.execute("PRAGMA journal_mode = WAL")
 
-        # Tabela de arquivos
+        # =====================================
+        # TABELA DE ARQUIVOS
+        # =====================================
+
         conexao.execute("""
             CREATE TABLE IF NOT EXISTS arquivos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +69,10 @@ def inicializar_banco():
             ON arquivos(modificado_ns)
         """)
 
-        # Tabela de usuários
+        # =====================================
+        # TABELA DE USUÁRIOS
+        # =====================================
+
         conexao.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +84,36 @@ def inicializar_banco():
             )
         """)
 
+        # =====================================
+        # CONTROLE DE TENTATIVAS DE LOGIN
+        # =====================================
+
+        conexao.execute("""
+            CREATE TABLE IF NOT EXISTS tentativas_login (
+                ip TEXT NOT NULL,
+                usuario_normalizado TEXT NOT NULL,
+
+                falhas INTEGER NOT NULL DEFAULT 0,
+
+                inicio_janela REAL,
+                bloqueado_ate REAL,
+
+                nivel_bloqueio INTEGER NOT NULL DEFAULT 0,
+
+                atualizado_em REAL NOT NULL,
+
+                PRIMARY KEY (
+                    ip,
+                    usuario_normalizado
+                )
+            )
+        """)
+
+        conexao.execute("""
+            CREATE INDEX IF NOT EXISTS idx_tentativas_login_atualizado
+            ON tentativas_login(atualizado_em)
+        """)
+
     return CAMINHO_BANCO
 
 
@@ -80,6 +121,7 @@ def obter_resumo():
     """Retorna informações do catálogo e do banco."""
 
     with conectar() as conexao:
+
         quantidade = conexao.execute(
             "SELECT COUNT(*) FROM arquivos"
         ).fetchone()[0]

@@ -23,6 +23,14 @@ from configuracao import (
 )
 from usuarios import autenticar_usuario, obter_usuario
 
+from seguranca_login import (
+    obter_ip_cliente,
+    consultar_bloqueio,
+    registrar_falha,
+    registrar_sucesso,
+    limpar_registros_antigos
+)
+
 
 # Verifica se a chave de sessão está configurada.
 if not DEBDOCS_SECRET_KEY:
@@ -42,6 +50,8 @@ app.mount(
     StaticFiles(directory=Path(__file__).parent / "static"),
     name="static"
 )
+
+
 # Configuração das sessões.
 app.add_middleware(
     SessionMiddleware,
@@ -63,6 +73,7 @@ class DadosLogin(BaseModel):
 
 # Verifica se existe uma sessão válida.
 def usuario_autenticado(request: Request):
+
     usuario_id = request.session.get("usuario_id")
 
     if usuario_id is None:
@@ -84,20 +95,66 @@ def usuario_autenticado(request: Request):
     return usuario
 
 
-# Login
+# Login com proteção contra força bruta.
 @app.post("/login")
 def login(dados: DadosLogin, request: Request):
 
+    # Identifica o IP de origem.
+    ip = obter_ip_cliente(request)
+
+    # Verifica se já existe um bloqueio ativo.
+    bloqueio = consultar_bloqueio(
+        ip,
+        dados.usuario
+    )
+
+    if bloqueio is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Muitas tentativas de login. Aguarde antes de tentar novamente.",
+            headers={
+                "Retry-After": str(
+                    bloqueio["segundos_restantes"]
+                )
+            }
+        )
+
+    # Verifica as credenciais.
     usuario = autenticar_usuario(
         dados.usuario,
         dados.senha
     )
 
+    # Credenciais inválidas.
     if usuario is None:
+
+        resultado = registrar_falha(
+            ip,
+            dados.usuario
+        )
+
+        # A quinta falha já provoca o bloqueio.
+        if resultado["bloqueado"]:
+            raise HTTPException(
+                status_code=429,
+                detail="Muitas tentativas de login. Aguarde antes de tentar novamente.",
+                headers={
+                    "Retry-After": str(
+                        resultado["segundos_restantes"]
+                    )
+                }
+            )
+
         raise HTTPException(
             status_code=401,
             detail="Usuário ou senha inválidos."
         )
+
+    # Login bem-sucedido: remove o histórico de falhas.
+    registrar_sucesso(
+        ip,
+        dados.usuario
+    )
 
     # Limpa qualquer sessão anterior.
     request.session.clear()
@@ -124,6 +181,7 @@ def consultar_sessao(request: Request):
         }
 
     except HTTPException as erro:
+
         if erro.status_code == 401:
             return {
                 "autenticado": False,
@@ -133,7 +191,7 @@ def consultar_sessao(request: Request):
         raise
 
 
-# Logout
+# Logout.
 @app.post("/logout")
 def logout(request: Request):
 
@@ -144,7 +202,7 @@ def logout(request: Request):
     }
 
 
-# Interface
+# Interface.
 @app.get("/", include_in_schema=False)
 def inicio():
 
@@ -165,6 +223,7 @@ def pesquisar(
     limite: int = Query(30, ge=1, le=100),
     usuario: dict = Depends(usuario_autenticado)
 ):
+
     try:
         return pesquisar_arquivos(
             termo=q,
