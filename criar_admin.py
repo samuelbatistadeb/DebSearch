@@ -1,6 +1,6 @@
 
 """
-Criação inicial do administrador do DebDocs.
+Criação inicial do administrador do DebSearch.
 Executado localmente pelo terminal.
 """
 
@@ -29,7 +29,7 @@ def main():
         return
 
     print("=" * 45)
-    print("CADASTRO DO ADMINISTRADOR - DEBDOCS")
+    print("CADASTRO DO ADMINISTRADOR - DEBSEARCH")
     print("=" * 45)
 
     usuario = input("\nNome de usuário: ").strip()

@@ -1,6 +1,6 @@
 
 """
-Banco de dados do DebDocs
+Banco de dados do DebSearch
 Gerenciamento do catálogo, usuários e segurança de autenticação.
 """
 

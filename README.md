@@ -180,7 +180,7 @@ Definir o caminho da pasta compartilhada onde estão armazenadas as notas fiscai
 Exemplo:
 
 ```text
-\\192.168.0.134\Users\contabilidade\Desktop\@ NOTAS FISCAIS
+\\192.168.0.0\Users\Desktop\exemplo
 ```
 
 O caminho definitivo deverá ser confirmado no computador novo.
@@ -198,6 +198,11 @@ Não colocar o banco SQLite diretamente na pasta compartilhada para que vários 
 Os colaboradores acessarão o banco exclusivamente pela aplicação.
 
 ### 4.3 Chave secreta
+Execultar no terminal para gerar a chave: 
+
+```text
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
 
 Configurar uma chave secreta forte e exclusiva para a instalação de produção.
 

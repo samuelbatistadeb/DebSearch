@@ -1,22 +1,44 @@
-"""Configurações do Catálogo de Notas Fiscais."""
+"""Configurações do DebSearch."""
+
 from pathlib import Path
 import os
-# Pasta compartilhada original. O indexador apenas LÊ os documentos.
-PASTA_ORIGEM = Path(r"YOUR PATH\TO\SHARED\FOLDER")
 
-# None = catalogar todos os arquivos; ou use {".pdf", ".xml"} para restringir.
+# =====================================
+# PASTA DE ORIGEM
+# =====================================
+
+PASTA_ORIGEM = Path(
+    r"YOUR PATH\TO\SHARED\FOLDER"
+)
+
+# =====================================
+# FILTROS DE ARQUIVOS
+# =====================================
+
 EXTENSOES_PERMITIDAS = None
 
-PASTAS_IGNORADAS = {"$recycle.bin", "system volume information"}
+PASTAS_IGNORADAS = {
+    "$recycle.bin",
+    "system volume information"
+}
+
 PREFIXOS_IGNORADOS = ("~$",)
-EXTENSOES_IGNORADAS = {".tmp", ".temp", ".part", ".crdownload"}
 
-# Autenticação e sessões do DebDocs
-DEBDOCS_SECRET_KEY = os.getenv("DEBDOCS_SECRET_KEY")
+EXTENSOES_IGNORADAS = {
+    ".tmp",
+    ".temp",
+    ".part",
+    ".crdownload"
+}
 
-# Duração máxima da sessão: 8 horas
+# =====================================
+# AUTENTICAÇÃO E SESSÕES
+# =====================================
+
+DEBSEARCH_SECRET_KEY = os.getenv("DEBSEARCH_SECRET_KEY")
+
 TEMPO_SESSAO_SEGUNDOS = 8 * 60 * 60
 
-# Durante os testes locais, utilizaremos HTTP.
-# Ao configurar HTTPS na rede, alteraremos para True.
+# False durante testes HTTP.
+# True após configurar HTTPS.
 COOKIE_SEGURO = False

@@ -17,7 +17,7 @@ from pesquisa import pesquisar_arquivos
 from banco import conectar
 from configuracao import (
     PASTA_ORIGEM,
-    DEBDOCS_SECRET_KEY,
+    DEBSEARCH_SECRET_KEY,
     TEMPO_SESSAO_SEGUNDOS,
     COOKIE_SEGURO
 )
@@ -34,14 +34,14 @@ import secrets
 import hmac
 
 # Verifica se a chave de sessão está configurada.
-if not DEBDOCS_SECRET_KEY:
+if not DEBSEARCH_SECRET_KEY:
     raise RuntimeError(
-        "A variável DEBDOCS_SECRET_KEY não foi configurada."
+        "A variável DEBSEARCH_SECRET_KEY não foi configurada."
     )
 
 
 app = FastAPI(
-    title="DebDocs - Catálogo de Notas Fiscais",
+    title="DebSearch - Catálogo de Notas Fiscais",
     description="Sistema de pesquisa de notas fiscais",
     version="1.1.0"
 )
@@ -56,7 +56,7 @@ app.mount(
 # Configuração das sessões.
 app.add_middleware(
     SessionMiddleware,
-    secret_key=DEBDOCS_SECRET_KEY,
+    secret_key=DEBSEARCH_SECRET_KEY,
     max_age=TEMPO_SESSAO_SEGUNDOS,
     same_site="lax",
     https_only=COOKIE_SEGURO
