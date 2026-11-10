@@ -30,7 +30,8 @@ from seguranca_login import (
     registrar_sucesso,
     limpar_registros_antigos
 )
-
+import secrets
+import hmac
 
 # Verifica se a chave de sessão está configurada.
 if not DEBDOCS_SECRET_KEY:
@@ -70,6 +71,38 @@ class DadosLogin(BaseModel):
     usuario: str = Field(min_length=1, max_length=50)
     senha: str = Field(min_length=1, max_length=256)
 
+# Validação de proteção contra CSRF.
+def validar_csrf(request: Request):
+
+    token_sessao = request.session.get("csrf_token")
+    token_recebido = request.headers.get("X-CSRF-Token")
+
+    if (
+        not token_sessao
+        or not token_recebido
+        or not hmac.compare_digest(
+            token_sessao,
+            token_recebido
+        )
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Requisição não autorizada."
+        )
+
+# Gera ou recupera o token CSRF da sessão.
+@app.get("/csrf-token")
+def obter_token_csrf(request: Request):
+
+    token = request.session.get("csrf_token")
+
+    if not token:
+        token = secrets.token_urlsafe(32)
+        request.session["csrf_token"] = token
+
+    return {
+        "csrf_token": token
+    }
 
 # Verifica se existe uma sessão válida.
 def usuario_autenticado(request: Request):
@@ -98,6 +131,7 @@ def usuario_autenticado(request: Request):
 # Login com proteção contra força bruta.
 @app.post("/login")
 def login(dados: DadosLogin, request: Request):
+    validar_csrf(request)
 
     # Identifica o IP de origem.
     ip = obter_ip_cliente(request)
@@ -156,11 +190,13 @@ def login(dados: DadosLogin, request: Request):
         dados.usuario
     )
 
-    # Limpa qualquer sessão anterior.
     request.session.clear()
 
-    # Armazena somente o identificador do usuário.
+    # Armazena o identificador do usuário.
     request.session["usuario_id"] = usuario["id"]
+
+    # Gera um novo token CSRF para a sessão autenticada.
+    request.session["csrf_token"] = secrets.token_urlsafe(32)
 
     return {
         "mensagem": "Login realizado com sucesso.",
@@ -194,6 +230,7 @@ def consultar_sessao(request: Request):
 # Logout.
 @app.post("/logout")
 def logout(request: Request):
+    validar_csrf(request)
 
     request.session.clear()
 

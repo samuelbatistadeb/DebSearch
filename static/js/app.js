@@ -9,7 +9,7 @@ const LIMITE = 15;
 
 let paginaAtual = 1;
 let totalPaginas = 0;
-
+let csrfToken = null;
 
 /* =========================================
    ELEMENTOS DO HTML
@@ -56,6 +56,8 @@ campoPesquisa.addEventListener("keydown", function(event) {
 async function inicializar() {
 
     try {
+
+        await obterTokenCSRF();
 
         const resposta = await fetch("/me", {
             method: "GET",
@@ -163,7 +165,8 @@ async function realizarLogin(event) {
             credentials: "same-origin",
 
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
             },
 
             body: JSON.stringify({
@@ -182,6 +185,10 @@ async function realizarLogin(event) {
             );
 
         }
+
+        // O backend criou uma nova sessão após o login.
+        // Precisamos obter o token CSRF dessa nova sessão.
+        await obterTokenCSRF();
 
         exibirCatalogo(dados.usuario);
 
@@ -220,7 +227,11 @@ async function realizarLogout() {
 
             method: "POST",
 
-            credentials: "same-origin"
+            credentials: "same-origin",
+
+            headers: {
+                "X-CSRF-Token": csrfToken
+            }
 
         });
 
@@ -311,6 +322,32 @@ function mostrarEstado(titulo, mensagem, icone = "⌕") {
     `;
 }
 
+/* =========================================
+   PROTEÇÃO CSRF
+========================================= */
+
+async function obterTokenCSRF() {
+
+    const resposta = await fetch("/csrf-token", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store"
+    });
+
+    if (!resposta.ok) {
+        throw new Error("Não foi possível obter o token de segurança.");
+    }
+
+    const dados = await resposta.json();
+
+    if (!dados.csrf_token) {
+        throw new Error("Token de segurança inválido.");
+    }
+
+    csrfToken = dados.csrf_token;
+
+    return csrfToken;
+}
 
 /* =========================================
    PESQUISA

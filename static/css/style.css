@@ -57,6 +57,10 @@ input {
         35px
         calc(var(--sidebar-width) + var(--page-gap));
 }
+/* bloqueia catálogo de pesquisa para usuários não logados */
+[hidden] {
+    display: none !important;
+}
 
 /* ========================================
    MENU LATERAL
@@ -672,5 +676,280 @@ tbody tr:hover {
 
     .state {
         min-height: 250px;
+    }
+}
+
+
+/* ========================================
+   TELA DE LOGIN
+======================================== */
+
+.login-screen {
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(37, 99, 201, 0.16),
+            transparent 48%
+        ),
+        var(--navy);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+
+    padding: 42px 40px 32px;
+
+    background: var(--background);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 17px;
+
+    box-shadow: 0 24px 65px rgba(0, 0, 0, 0.28);
+}
+
+.login-brand {
+    color: var(--navy);
+
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+
+    text-align: center;
+}
+
+.login-description {
+    margin-top: 7px;
+
+    color: var(--secondary-text);
+
+    font-size: 12px;
+    letter-spacing: 0.2px;
+
+    text-align: center;
+}
+
+.login-heading {
+    margin-top: 38px;
+    margin-bottom: 25px;
+}
+
+.login-heading h2 {
+    margin: 0;
+
+    color: var(--navy);
+
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+}
+
+.login-heading p {
+    margin: 8px 0 0;
+
+    color: var(--secondary-text);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-bottom: 19px;
+}
+
+.login-field label {
+    color: var(--navy);
+
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.login-field input {
+    width: 100%;
+    height: 47px;
+
+    padding: 0 14px;
+
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    color: var(--navy);
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.login-field input::placeholder {
+    color: #94A3B8;
+}
+
+.login-field input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 201, 0.10);
+}
+
+.login-button {
+    width: 100%;
+    height: 48px;
+
+    margin-top: 7px;
+
+    background: var(--blue);
+    color: var(--white);
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.15s;
+}
+
+.login-button:hover:not(:disabled) {
+    background: #1D4FA8;
+}
+
+.login-button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.login-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.login-error {
+    margin: 5px 0 12px;
+    padding: 11px 13px;
+
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 7px;
+
+    color: var(--error);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.login-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+
+    border-top: 1px solid var(--border);
+
+    color: var(--secondary-text);
+
+    font-size: 11px;
+    text-align: center;
+}
+
+
+/* ========================================
+   IDENTIFICAÇÃO DO USUÁRIO
+======================================== */
+
+.user-area {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    margin-top: auto;
+    padding-top: 20px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+#currentUser {
+    max-width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: rgba(255, 255, 255, 0.78);
+
+    font-size: 12px;
+    font-weight: 550;
+}
+
+.logout-button {
+    width: 100%;
+    height: 36px;
+
+    padding: 0 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 7px;
+
+    color: rgba(255, 255, 255, 0.85);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s;
+}
+
+.logout-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.logout-button:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+
+/* ========================================
+   RESPONSIVIDADE DO LOGIN
+======================================== */
+
+@media (max-width: 600px) {
+    .login-screen {
+        padding: 18px;
+    }
+
+    .login-card {
+        padding: 35px 25px 27px;
+    }
+
+    .login-brand {
+        font-size: 27px;
     }
 }
