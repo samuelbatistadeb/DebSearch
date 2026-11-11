@@ -494,3 +494,421 @@ python gerenciar_usuarios.py
 - [ ] Definir rotina de backup.
 
 **Recomendação final:** realizar a implantação em etapas. Primeiro, deixar o DebSearch funcionando localmente no computador novo. Depois, validar o acesso à pasta compartilhada e os resultados da pesquisa. Por último, configurar HTTPS, acesso pela rede e inicialização automática.
+
+
+Ótimo. Então já temos a estrutura necessária:
+- Projeto: C:\DebDocs
+- Python do ambiente virtual: C:\DebDocs\.venv\Scripts\python.exe
+- Aplicação: app.py
+- Monitor: monitor.py
+Vamos manter os dois processos separados. Assim, se o monitor apresentar algum problema, a aplicação web não precisa parar junto com ele.
+
+Antes de instalar os serviços, vamos preparar e testar os comandos que o Windows executará.
+
+Agora precisamos considerar um detalhe importante da infraestrutura: o DebDocs acessa uma pasta compartilhada por rede (\\192.168.0.134\...).
+
+Se iniciarmos o monitor como serviço usando a conta padrão do Windows, ele poderá perder acesso a essa pasta. Por isso, quero configurar a execução com uma conta que tenha permissão de leitura na origem.
+
+Uma pequena decisão de arquitetura: vamos usar o Agendador de Tarefas do Windows, em vez de instalar uma ferramenta externa como NSSM. Ele permite iniciar os dois processos na inicialização, mesmo sem alguém entrar na área de trabalho, e configurar tentativas de recuperação.
+Etapa 2 — Verificar a conta e o acesso à pasta
+Abra o PowerShell no computador servidor e execute:
+Write-Host "=== CONTA DO WINDOWS ==="
+whoami
+
+Write-Host "`n=== ACESSO À PASTA DE ORIGEM ==="
+Test-Path "\\192.168.0.134\Users\contabilidade\Desktop\@ NOTAS FISCAIS"
+
+Write-Host "`n=== IDENTIFICAÇÃO DO COMPUTADOR ==="
+$env:COMPUTERNAME
+
+
+Precisamos confirmar que a conta que executará as tarefas consegue acessar a pasta de origem.
+
+Depois disso, vamos criar dois arquivos de inicialização dentro de C:\DebDocs, configurar os registros no Agendador de Tarefas e deixar ambos com inicialização automática e recuperação em caso de falha.
+
+O resultado será um DebDocs que funciona em segundo plano, sem precisar abrir o VS Code ou deixar terminais abertos.
+
+
+
+
+
+
+
+
+
+
+
+Converter em PDF
+
+Isso também pode interessar a você.
+
+
+Anúncio
+Opções do anúncio
+
+
+
+Saiba mais
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tudo certo, sigamos
+
+
+
+
+
+
+
+
+
+
+
+
+Pensou por 15s
+
+Configurou a inicialização automática e ajustou tarefas do Windows
+
+
+
+
+
+
+
+
+
+
+Ótimo. Vamos preparar os dois inicializadores, com registro de logs. Depois vamos cadastrá-los no Agendador de Tarefas do Windows.
+
+A ideia é que cada processo tenha seu próprio arquivo de inicialização. Isso facilita identificar problemas e reiniciar um sem afetar o outro.
+Etapa 3 — Criar os inicializadores
+Vamos criar esta estrutura:
+C:\DebDocs
+│
+├── app.py
+├── monitor.py
+├── banco.py
+├── configuracao.py
+├── .venv
+│
+├── logs
+│   ├── uvicorn.log
+│   └── monitor.log
+│
+├── iniciar_web.bat
+└── iniciar_monitor.bat
+
+
+1. Criar iniciar_web.bat
+Abra o PowerShell e execute:
+@'
+@echo off
+cd /d C:\DebDocs
+
+if not exist logs mkdir logs
+
+.venv\Scripts\python.exe -m uvicorn app:app --host 0.0.0.0 --port 8000 >> logs\uvicorn.log 2>&1
+'@ | Set-Content -Path "C:\DebDocs\iniciar_web.bat" -Encoding ASCII
+
+
+Esse arquivo inicia o Uvicorn e registra as mensagens em logs\uvicorn.log.
+2. Criar iniciar_monitor.bat
+Execute:
+@'
+@echo off
+cd /d C:\DebDocs
+
+if not exist logs mkdir logs
+
+.venv\Scripts\python.exe monitor.py >> logs\monitor.log 2>&1
+'@ | Set-Content -Path "C:\DebDocs\iniciar_monitor.bat" -Encoding ASCII
+
+
+Esse arquivo inicia o monitor e registra suas mensagens em logs\monitor.log.
+3. Conferir se os arquivos foram criados
+Execute:
+Get-ChildItem C:\DebDocs\iniciar_*.bat
+
+
+4. Testar os inicializadores
+Abra dois terminais PowerShell separados.
+
+No primeiro:
+C:\DebDocs\iniciar_web.bat
+
+
+No segundo:
+C:\DebDocs\iniciar_monitor.bat
+
+
+Confira se:
+- O DebDocs abre normalmente pelo navegador em http://IP-DO-SERVIDOR:8000.
+- O monitor inicia sem erros e reconhece a pasta de origem.
+- Os arquivos de log são criados dentro de C:\DebDocs\logs.
+Se algum dos processos já estiver em execução, não inicie outra instância na mesma porta ou no mesmo monitoramento.
+
+Faça essa etapa e me confirme se os dois inicializadores funcionaram. Depois configuraremos o Agendador de Tarefas para iniciar ambos automaticamente com o Windows e reiniciá-los caso apresentem falhas.
+
+
+
+
+
+
+
+
+
+
+
+Converter em PDF
+
+
+
+
+
+
+certo sigamos
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perfeito. Agora vamos configurar a inicialização automática pelo Agendador de Tarefas do Windows.
+
+Vamos fazer isso de forma que:
+- O Uvicorn inicie quando o computador ligar.
+- O monitor inicie automaticamente, com um pequeno atraso para dar tempo de a rede e a pasta compartilhada ficarem disponíveis.
+- Os dois processos possam funcionar mesmo sem ninguém conectado ao Windows.
+- O Windows tente reiniciar os processos se eles encerrarem inesperadamente.
+Importante: usaremos a mesma conta do Windows que você verificou no teste de acesso à pasta compartilhada. Isso é especialmente importante para o monitor.
+Etapa 4 — Preparar o Agendador
+Primeiro, encerre os dois testes manuais, pressionando Ctrl + C nos terminais em que estão rodando. Assim evitamos iniciar uma segunda instância da aplicação ou do monitor.
+1. Criar a tarefa da aplicação web
+1. Pressione Win + R.
+2. Digite taskschd.msc e pressione Enter.
+3. No painel direito, clique em Criar Tarefa (não escolha Criar Tarefa Básica).
+Na aba Geral, configure:
+Campo	Valor
+Nome	DebDocs - Aplicacao Web
+Descrição	Inicialização automática do servidor web DebDocs
+Conta	A mesma conta do teste anterior
+Opção de execução	Executar independentemente de o usuário estar conectado
+
+Marque também Executar com privilégios mais altos.
+
+Na aba Disparadores:
+1. Clique em Novo.
+2. Em iniciar a tarefa, selecione Na inicialização.
+3. Deixe habilitada e confirme.
+Na aba Ações:
+1. Clique em Novo.
+2. Ação: Iniciar um programa.
+3. Programa/script:
+C:\Windows\System32\cmd.exe
+
+
+4. Adicionar argumentos:
+/c "C:\DebDocs\iniciar_web.bat"
+
+
+5. Iniciar em:
+C:\DebDocs
+
+
+Na aba Condições:
+- Desmarque a opção de iniciar somente se estiver conectado à energia, caso apareça.
+- Não coloque restrição de rede nesta primeira configuração.
+Na aba Configurações:
+- Marque Permitir que a tarefa seja executada sob demanda.
+- Marque Se a tarefa falhar, reiniciar a cada: 1 minuto.
+- Configure para tentar reiniciar 3 vezes.
+- Em caso de tarefa já em execução, selecione Não iniciar uma nova instância.
+Clique em OK. O Windows poderá solicitar a senha da conta escolhida. Isso é esperado quando configuramos a execução sem usuário conectado.
+
+Atenção: use a senha da conta do Windows, não a senha do DebDocs.
+2. Criar a tarefa do monitor
+Depois de salvar a primeira tarefa, repita o procedimento com estas diferenças:
+Campo	Valor
+Nome	DebDocs - Monitor
+Descrição	Monitoramento e reconciliação do catálogo
+Disparador	Na inicialização
+Atraso do disparador	1 minuto
+Programa	C:\Windows\System32\cmd.exe
+Argumentos	/c "C:\DebDocs\iniciar_monitor.bat"
+Iniciar em	C:\DebDocs
+
+Mantenha as mesmas configurações de conta e recuperação da primeira tarefa.
+
+Por enquanto, não reinicie o computador. Primeiro me confirme se conseguiu criar as duas tarefas e se ambas aparecem na Biblioteca do Agendador de Tarefas. Depois faremos o teste controlado de inicialização e verificaremos os logs.
+
+Perfeito. Agora vamos fazer um teste controlado das duas tarefas, antes de reiniciar o servidor. Queremos confirmar que o Agendador realmente mantém os processos em execução, e não apenas inicia e encerra os arquivos .bat.
+Etapa 5 — Testar as tarefas
+1. Iniciar os dois processos pelo Agendador
+Abra o Agendador de Tarefas (taskschd.msc).
+
+Na Biblioteca do Agendador:
+1. Localize DebDocs - Aplicacao Web.
+2. Clique com o botão direito e selecione Executar.
+3. Faça o mesmo com DebDocs - Monitor.
+Aguarde aproximadamente 30 segundos.
+2. Verificar o estado das tarefas
+Abra um PowerShell e execute:
+Get-ScheduledTask -TaskName "DebDocs - Aplicacao Web","DebDocs - Monitor" |
+    Select-Object TaskName, State
+
+Get-ScheduledTaskInfo -TaskName "DebDocs - Aplicacao Web"
+Get-ScheduledTaskInfo -TaskName "DebDocs - Monitor"
+
+
+O esperado é:
+
+Running
+ As duas tarefas devem aparecer como Running.
+
+Um detalhe: o código 0x41301 em LastTaskResult também é normal nesse caso: significa que a tarefa ainda está em execução.
+3. Conferir os logs
+Execute:
+Write-Host "=== LOG DA APLICACAO ==="
+Get-Content C:\DebDocs\logs\uvicorn.log -Tail 20
+
+Write-Host "`n=== LOG DO MONITOR ==="
+Get-Content C:\DebDocs\logs\monitor.log -Tail 20
+
+
+Na aplicação, queremos encontrar uma mensagem indicando que o Uvicorn está ativo na porta 8000.
+
+No monitor, queremos encontrar a inicialização e a confirmação de que a reconciliação foi concluída.
+4. Testar o acesso
+No próprio servidor, abra:
+
+http://127.0.0.1:8000
+
+Depois, teste também pelo IP do servidor, usando outro computador da rede.
+
+Ainda não reinicie o computador.
+
+Me envie:
+- O estado das duas tarefas.
+- O resultado dos logs.
+- Se conseguiu abrir o DebDocs pelo navegador.
+Depois vamos conferir as opções de execução prolongada e recuperação de falhas e, finalmente, fazer o teste de reinicialização do Windows.
+
+
+
+
+
+
+
+
+
+
+
+Converter em PDF
+
+Para hospedagem e infra de servidores, aqui vai uma opção Brasil.
+
+
+Anúncio
+Opções do anúncio
+
+
+
+Saiba mais
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tudo certo, sigamos
+
+
+
+
+
+
+
+
+
+
+
+
+
+Excelente! Agora os dois processos já estão funcionando pelo Agendador. Vamos fazer a última configuração antes do teste de reinicialização: garantir que as tarefas não sejam encerradas por limites de tempo e que o Windows tente recuperá-las em caso de falha.
+Etapa 6 — Ajustar a execução contínua
+Abra o Agendador de Tarefas (taskschd.msc).
+
+Faça isso para as duas tarefas: DebDocs - Aplicacao Web e DebDocs - Monitor.
+1. Aba Configurações
+Clique duas vezes na tarefa e abra Configurações.
+
+Confira:
+Opção	Configuração
+Permitir execução sob demanda	Marcada
+Executar tarefa o mais rápido possível após uma inicialização agendada perdida	Marcada
+Se a tarefa falhar, reiniciar a cada	1 minuto
+Tentar reiniciar até	3 vezes
+Interromper a tarefa se ela for executada por mais de	Desmarcada
+Se a tarefa não terminar quando solicitada	Não forçar encerramento, se disponível
+Se a tarefa já estiver em execução	Não iniciar uma nova instância
+
+2. Aba Condições
+Confira:
+- Não exigir que o computador esteja ocioso.
+- Não exigir alimentação externa, caso seja um notebook.
+- Não restringir a execução por condição de rede.
+3. Aba Geral
+Confirme:
+- Executar independentemente de o usuário estar conectado.
+- Executar com privilégios mais altos.
+- Conta do Windows correta.
+Clique em OK e repita na outra tarefa.
+Etapa 7 — Testar a inicialização automática
+Agora vamos testar o funcionamento real.
+1. Salve tudo o que estiver aberto no servidor.
+2. Reinicie o Windows normalmente.
+3. Não abra VS Code, PowerShell ou os arquivos .bat.
+4. Aguarde aproximadamente 2 minutos após o Windows iniciar.
+5. Em outro computador, tente acessar o DebDocs pelo endereço:
+http://IP-DO-SERVIDOR:8000
+
+
+Depois, no servidor, abra o Agendador e confira se as duas tarefas estão como Running.
+O que queremos validar
+- Aplicação inicia sozinha.
+- Monitor inicia sozinho.
+- Pasta compartilhada fica acessível pelo monitor.
+- Logs continuam sendo registrados.
+- Nenhum terminal precisa ficar aberto.
+
+Faça o teste de reinicialização e me conte se tudo voltou a funcionar. Depois podemos trabalhar em uma pequena melhoria: criar um painel de status do DebDocs para consultar se a aplicação e o monitor estão ativos, sem precisar abrir o Agendador de Tarefas.
