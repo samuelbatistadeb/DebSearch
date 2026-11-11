@@ -275,10 +275,12 @@ def pesquisar(
         )
 
 
-# Download protegido.
+
+# Visualização e download protegidos.
 @app.get("/arquivo/{arquivo_id}")
 def baixar_arquivo(
     arquivo_id: int,
+    visualizar: bool = False,
     usuario: dict = Depends(usuario_autenticado)
 ):
 
@@ -325,5 +327,5 @@ def baixar_arquivo(
     return FileResponse(
         path=arquivo,
         filename=nome,
-        content_disposition_type="attachment"
+        content_disposition_type="inline" if visualizar else "attachment"
     )

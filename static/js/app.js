@@ -521,14 +521,15 @@ function renderizarResultados(resultados) {
                             ↓ Baixar
                         </a>
 
-                        <button
+                        <a
                             class="action-button"
-                            onclick="copiarCaminho(this)"
-                            data-path="${escaparHTML(caminho)}"
-                            title="Copiar caminho"
+                            href="/arquivo/${id}?visualizar=true"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Visualizar e imprimir documento"
                         >
-                            ⧉ Caminho
-                        </button>
+                            ↗ Visualizar
+                        </a>
 
                     </div>
                 </td>
